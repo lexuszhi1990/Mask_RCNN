@@ -32,6 +32,7 @@ import sys
 import time
 import numpy as np
 import imgaug  # https://github.com/aleju/imgaug (pip3 install imageaug)
+from pathlib import Path
 
 # Download and install the Python COCO tools from https://github.com/waleedka/coco
 # That's a fork from the original https://github.com/pdollar/coco with a bug
@@ -39,6 +40,12 @@ import imgaug  # https://github.com/aleju/imgaug (pip3 install imageaug)
 # I submitted a pull request https://github.com/cocodataset/cocoapi/pull/50
 # If the PR is merged then use the original repo.
 # Note: Edit PythonAPI/Makefile and replace "python" with "python3".
+
+# Root directory of the project
+ROOT_DIR = os.path.abspath('.')
+sys.path.append(ROOT_DIR)  # To find local version of the library
+
+sys.path.append(Path(ROOT_DIR, 'dataset', 'cocoapi', 'PythonAPI').as_posix())
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 from pycocotools import mask as maskUtils
@@ -47,21 +54,19 @@ import zipfile
 import urllib.request
 import shutil
 
-# Root directory of the project
-ROOT_DIR = os.path.abspath("../../")
-
 # Import Mask RCNN
-sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import model as modellib, utils
 
 # Path to trained weights file
-COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+# COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
+COCO_MODEL_PATH = '/mnt/models'
 
 # Directory to save logs and model checkpoints, if not provided
 # through the command line argument --logs
-DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
-DEFAULT_DATASET_YEAR = "2014"
+# DEFAULT_LOGS_DIR = os.path.join(ROOT_DIR, "logs")
+DEFAULT_LOGS_DIR = '/mnt/logs'
+DEFAULT_DATASET_YEAR = "2017"
 
 ############################################################
 #  Configurations
@@ -78,13 +83,20 @@ class CocoConfig(Config):
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 1
 
     # Uncomment to train on 8 GPUs (default is 1)
     # GPU_COUNT = 8
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 80  # COCO has 80 classes
+
+    # Supported values are: resnet50, resnet101
+    BACKBONE = "resnet50"
+
+    # The strides of each layer of the FPN Pyramid. These values
+    # are based on a resnet50 backbone.
+    BACKBONE_STRIDES = [4, 8, 16, 32, 64]
 
 
 ############################################################
@@ -111,7 +123,7 @@ class CocoDataset(utils.Dataset):
         coco = COCO("{}/annotations/instances_{}{}.json".format(dataset_dir, subset, year))
         if subset == "minival" or subset == "valminusminival":
             subset = "val"
-        image_dir = "{}/{}{}".format(dataset_dir, subset, year)
+        image_dir = "{}/images/{}{}".format(dataset_dir, subset, year)
 
         # Load all classes or a subset?
         if not class_ids:
@@ -423,6 +435,14 @@ if __name__ == '__main__':
                         default=500,
                         metavar="<image count>",
                         help='Images to use for evaluation (default=500)')
+    parser.add_argument('--train_image_set', required=False,
+                        default='train',
+                        metavar="<image set>",
+                        help='Image set to train')
+    parser.add_argument('--test_image_set', required=False,
+                        default='val',
+                        metavar="<image set>",
+                        help='Image set to val')
     parser.add_argument('--download', required=False,
                         default=False,
                         metavar="<True|False>",
@@ -478,13 +498,12 @@ if __name__ == '__main__':
         # Training dataset. Use the training set and 35K from the
         # validation set, as as in the Mask RCNN paper.
         dataset_train = CocoDataset()
-        dataset_train.load_coco(args.dataset, "train", year=args.year, auto_download=args.download)
-        dataset_train.load_coco(args.dataset, "valminusminival", year=args.year, auto_download=args.download)
+        dataset_train.load_coco(args.dataset, args.train_image_set, year=args.year, auto_download=args.download)
         dataset_train.prepare()
 
         # Validation dataset
         dataset_val = CocoDataset()
-        dataset_val.load_coco(args.dataset, "minival", year=args.year, auto_download=args.download)
+        dataset_val.load_coco(args.dataset, args.test_image_set, year=args.year, auto_download=args.download)
         dataset_val.prepare()
 
         # Image Augmentation
