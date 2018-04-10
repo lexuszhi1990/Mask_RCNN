@@ -1,10 +1,26 @@
 # Mask R-CNN for Object Detection and Segmentation
 
-### build docker images
+### setup docker dev
 
-docker run --rm -v /Users/david/repo/detection/Mask_RCNN:/app -it tf-py3.6-cpu:v0.1
+install packages
+```
+docker run --network host --rm -it tensorflow/tensorflow:1.7.0-devel-gpu-py3 bash
+apt-get install -y python3-tk
+install packagess(pip3 install scikit-image)
+docker commit -m "add keras" bd986f493f6f tf-py3.5-gpu:v0.1
+```
 
+setup coco api
+```
+cd dataset/cocoapi/PythonAPI/
+make && make install
+```
 
+### run docker imags
+
+docker run --network host --rm -v /home/fulingzhi/workspace/Mask_RCNN:/app -v /mnt/gf_mnt/datasets/cocoapi:/mnt/data/coco -v /mnt/gf_mnt/jobs/mask_rcnn_keras:/mnt/logs -v /mnt/gf_mnt/models/mask_rcnn_keras:/mnt/models -it tf-py3.5-gpu:v0.1
+
+python3 samples/coco/coco.py train --dataset=/mnt/data/coco --model=/mnt/models/mask_rcnn_coco.h5 --year=2017 --logs=/mnt/logs --train_image_set=train --test_image_set=val
 
 ### infos
 This is an implementation of [Mask R-CNN](https://arxiv.org/abs/1703.06870) on Python 3, Keras, and TensorFlow. The model generates bounding boxes and segmentation masks for each instance of an object in the image. It's based on Feature Pyramid Network (FPN) and a ResNet101 backbone.
