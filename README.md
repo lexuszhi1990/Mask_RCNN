@@ -16,11 +16,21 @@ cd dataset/cocoapi/PythonAPI/
 make && make install
 ```
 
+notebook: `jupyter notebook --allow-root`
+
 ### run docker imags
 
 docker run --network host --rm -v /home/fulingzhi/workspace/Mask_RCNN:/app -v /mnt/gf_mnt/datasets/cocoapi:/mnt/data/coco -v /mnt/gf_mnt/jobs/mask_rcnn_keras:/mnt/logs -v /mnt/gf_mnt/models/mask_rcnn_keras:/mnt/models -it tf-py3.5-gpu:v0.1
 
 python3 samples/coco/coco.py train --dataset=/mnt/data/coco --model=/mnt/models/mask_rcnn_coco.h5 --year=2017 --logs=/mnt/logs --train_image_set=train --test_image_set=val
+
+on 172:
+
+```
+docker run --network host --rm -v /home/david/fashionAI/mask_rcnn_tf:/app -v /data/david/cocoapi:/mnt/data/coco -v /data/david/logdir/mask-rcnn-tf:/mnt/logs -v /data/david/models/mask-rcnn-tf:/mnt/models -it tf-py3.5-gpu:v0.1
+
+CUDA_VISIBLE_DEVICES=7 python3 samples/coco/coco.py train --dataset=/mnt/data/coco --model=/mnt/models/mask_rcnn_coco.h5 --year=2017 --logs=/mnt/logs --train_image_set=train --test_image_set=val
+```
 
 ### infos
 This is an implementation of [Mask R-CNN](https://arxiv.org/abs/1703.06870) on Python 3, Keras, and TensorFlow. The model generates bounding boxes and segmentation masks for each instance of an object in the image. It's based on Feature Pyramid Network (FPN) and a ResNet101 backbone.
