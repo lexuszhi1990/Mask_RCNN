@@ -98,6 +98,12 @@ class CocoConfig(Config):
     # are based on a resnet50 backbone.
     BACKBONE_STRIDES = [4, 8, 16, 32, 64]
 
+    USE_MINI_MASK = False
+
+    RPN_ANCHOR_SCALES = (32, 64, 128)
+    IMAGE_MIN_DIM = 512
+    IMAGE_MAX_DIM = 640
+
 
 ############################################################
 #  Dataset
@@ -512,28 +518,28 @@ if __name__ == '__main__':
 
         # *** This training schedule is an example. Update to your needs ***
 
-        # Training - Stage 1
-        print("Training network heads")
-        model.train(dataset_train, dataset_val,
-                    learning_rate=config.LEARNING_RATE,
-                    epochs=40,
-                    layers='heads',
-                    augmentation=augmentation)
+        # # Training - Stage 1
+        # print("Training network heads")
+        # model.train(dataset_train, dataset_val,
+        #             learning_rate=config.LEARNING_RATE,
+        #             epochs=40,
+        #             layers='heads',
+        #             augmentation=augmentation)
 
-        # Training - Stage 2
-        # Finetune layers from ResNet stage 4 and up
-        print("Fine tune Resnet stage 4 and up")
-        model.train(dataset_train, dataset_val,
-                    learning_rate=config.LEARNING_RATE,
-                    epochs=120,
-                    layers='4+',
-                    augmentation=augmentation)
+        # # Training - Stage 2
+        # # Finetune layers from ResNet stage 4 and up
+        # print("Fine tune Resnet stage 4 and up")
+        # model.train(dataset_train, dataset_val,
+        #             learning_rate=config.LEARNING_RATE,
+        #             epochs=120,
+        #             layers='4+',
+        #             augmentation=augmentation)
 
         # Training - Stage 3
         # Fine tune all layers
         print("Fine tune all layers")
         model.train(dataset_train, dataset_val,
-                    learning_rate=config.LEARNING_RATE / 10,
+                    learning_rate=config.LEARNING_RATE,
                     epochs=160,
                     layers='all',
                     augmentation=augmentation)
